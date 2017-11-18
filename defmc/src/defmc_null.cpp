@@ -23,7 +23,7 @@ int DefMcPlatform_Stop()
 int DefMcPlatform_SampleAmplitude(float &amp)
 {
 	dmLogInfo("NULL DefMcPlatform_SampleAmplitude");
-	amp = 666.0f;
+	amp = 50.0f;
 	return 0;
 }
 #endif
