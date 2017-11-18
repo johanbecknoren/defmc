@@ -4,4 +4,5 @@
 
 extern int DefMcPlatform_Init();
 extern int DefMcPlatform_Start();
-extern int DefMcPlatform_SampleAmplitude();
+extern int DefMcPlatform_Stop();
+extern int DefMcPlatform_SampleAmplitude(float &amp);

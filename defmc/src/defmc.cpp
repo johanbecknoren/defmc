@@ -31,11 +31,28 @@ static int StartDefMc(lua_State* L)
     return 0;
 }
 
+static int StopDefMc(lua_State* L)
+{
+    int top = lua_gettop(L);
+
+    int result = DefMcPlatform_Stop();
+    if (result != 0)
+        luaL_error(L, "Failed to stop DefMc");
+
+    assert(top == lua_gettop(L));
+    return 0;
+}
+
 static int SampleAmplitude(lua_State* L)
 {
     int top = lua_gettop(L);
 
-	lua_pushnumber(L, 1337);
+    float amp = 0.0f;
+    int result = DefMcPlatform_SampleAmplitude(amp);
+    if (result != 0)
+        luaL_error(L, "Failed to sample amplitude DefMc");
+
+	lua_pushnumber(L, amp);
     // Assert that there is one item on the stack.
     assert(top + 1 == lua_gettop(L));
 
@@ -49,6 +66,7 @@ static const luaL_reg Module_methods[] =
     {"sample_amplitude", SampleAmplitude},
     {"init", InitDefMc},
     {"start", StartDefMc},
+    {"stop", StopDefMc},
     {0, 0}
 };
 

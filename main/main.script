@@ -13,15 +13,18 @@ function final(self)
 end
 
 function update(self, dt)
-	if update_count < 100 then
+	--[[if update_count < 100 then
 		update_count = update_count + 1
 	elseif once == 1 then
-		once = 0
+		once = 2
 		--defmc.init()
 		defmc.start()
+		--local amp = defmc.sample_amplitude()
+		--label.set_text("#label", "Amplitude: " .. tostring(amp))
+	elseif once == 2 then
 		local amp = defmc.sample_amplitude()
 		label.set_text("#label", "Amplitude: " .. tostring(amp))
-	end
+	end--]]
 end
 
 function on_message(self, message_id, message, sender)

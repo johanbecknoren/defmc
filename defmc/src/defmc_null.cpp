@@ -13,4 +13,17 @@ int DefMcPlatform_Start()
 	dmLogInfo("NULL DefMcPlatform_Start");
 	return 0;
 }
+
+int DefMcPlatform_Stop()
+{
+	dmLogInfo("NULL DefMcPlatform_Stop");
+	return 0;
+}
+
+int DefMcPlatform_SampleAmplitude(float &amp)
+{
+	dmLogInfo("NULL DefMcPlatform_SampleAmplitude");
+	amp = 666.0f;
+	return 0;
+}
 #endif

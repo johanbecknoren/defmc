@@ -1,5 +1,5 @@
 #include <dmsdk/sdk.h>
-#include "defmc_private.h";
+#include "defmc_private.h"
 
 #if defined(DM_PLATFORM_ANDROID)
 
@@ -51,7 +51,7 @@ static jclass GetClass(JNIEnv* env, const char* classname)
 int DefMcPlatform_Init()
 {
 	dmLogInfo("ANDROID DefMcPlatform_Init ...");
-	dmLogInfo("NativeActivity NULL?: %i", dmGraphics::GetNativeAndroidActivity() == 0x0);
+	dmLogInfo("DONE!");
 
 	return 0;
 }
@@ -59,7 +59,6 @@ int DefMcPlatform_Init()
 int DefMcPlatform_Start()
 {
 	dmLogInfo("ANDROID DefMcPlatform_Start ...");
-	dmLogInfo("NativeActivity NULL?: %i", dmGraphics::GetNativeAndroidActivity() == 0x0);
 
 	// prepare JNI
 	AttachScope attachscope;
@@ -75,6 +74,45 @@ int DefMcPlatform_Start()
 	dmLogInfo("DONE!");
 
 	dmLogInfo("ANDROID DefMcPlatform_Start DONE");
+	return 0;
+}
+
+
+int DefMcPlatform_Stop()
+{
+	dmLogInfo("ANDROID DefMcPlatform_Stop ...");
+	// prepare JNI
+	AttachScope attachscope;
+	JNIEnv* env = attachscope.m_Env;
+	jclass cls = GetClass(env, "com.defold.android.defmc.DefMcExtension");
+
+	// call method
+	dmLogInfo("GetStaticMethodID ...");
+	jmethodID start = env->GetStaticMethodID(cls, "StopRecorder", "(Landroid/app/Activity;)V");
+	dmLogInfo("DONE!");
+	dmLogInfo("CallStaticVoidMethod ...");
+	env->CallStaticVoidMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
+	dmLogInfo("DONE!");
+
+	dmLogInfo("ANDROID DefMcPlatform_Stop DONE");
+	return 0;
+}
+
+int DefMcPlatform_SampleAmplitude(float &amp)
+{
+	dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude ...");
+
+	// prepare JNI
+	AttachScope attachscope;
+	JNIEnv* env = attachscope.m_Env;
+	jclass cls = GetClass(env, "com.defold.android.defmc.DefMcExtension");
+
+	// call method
+	jmethodID start = env->GetStaticMethodID(cls, "SampleAmplitude", "(Landroid/app/Activity;)D");
+	amp = (float)env->CallStaticDoubleMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
+	dmLogInfo("DONE! amp = %f", amp);
+
+	dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude DONE");
 	return 0;
 }
 #endif
