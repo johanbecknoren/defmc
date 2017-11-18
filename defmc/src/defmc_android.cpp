@@ -53,13 +53,14 @@ jclass g_Cls;
 
 int DefMcPlatform_Init()
 {
-	dmLogError("ANDROID DefMcPlatform_Init");
+	dmLogError("ANDROID DefMcPlatform_Init ...");
 
 	// prepare JNI
 	AttachScope attachscope;
 	g_Env = attachscope.m_Env;
-	g_Cls = GetClass(env, "com.defold.android.defmc.DefMcExtension");
+	g_Cls = GetClass(g_Env, "com.defold.android.defmc.DefMcExtension");
 
+	dmLogError("ANDROID DefMcPlatform_Init DONE");
 	// call method
 	/*jmethodID vibrate = env->GetStaticMethodID(cls, "Vibrate", "(Landroid/app/Activity;)V");
 	env->CallStaticVoidMethod(cls, vibrate, dmGraphics::GetNativeAndroidActivity());
