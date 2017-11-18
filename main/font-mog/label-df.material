@@ -1,0 +1,24 @@
+name: "label"
+tags: "tile"
+vertex_program: "/builtins/fonts/font-df.vp"
+fragment_program: "/main/font-mog/font-df.fp"
+vertex_constants {
+  name: "view_proj"
+  type: CONSTANT_TYPE_VIEWPROJ
+  value {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 0.0
+  }
+}
+fragment_constants {
+  name: "edge_value"
+  type: CONSTANT_TYPE_USER
+  value {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 0.0
+  }
+}

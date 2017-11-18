@@ -1,0 +1,38 @@
+local update_delays = 50
+local update_count = 0
+local once = 1
+function init(self)
+	pprint("INIT!")
+	local sys_info = sys.get_sys_info()
+	label.set_text("#label_platform", sys_info.system_name .. " " .. sys_info.system_version)
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	if update_count < 100 then
+		update_count = update_count + 1
+	elseif once == 1 then
+		once = 0
+		local amp = defmc.sample_amplitude()
+		label.set_text("#label", "Amplitude: " .. tostring(amp))
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Remove this function if not needed
+end
