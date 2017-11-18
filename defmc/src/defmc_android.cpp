@@ -48,24 +48,48 @@ static jclass GetClass(JNIEnv* env, const char* classname)
 	return outcls;
 }
 
-JNIEnv* g_Env;
-jclass g_Cls;
-
 int DefMcPlatform_Init()
 {
-	dmLogError("ANDROID DefMcPlatform_Init ...");
-
-	// prepare JNI
-	AttachScope attachscope;
-	g_Env = attachscope.m_Env;
-	g_Cls = GetClass(g_Env, "com.defold.android.defmc.DefMcExtension");
-
-	dmLogError("ANDROID DefMcPlatform_Init DONE");
-	// call method
-	/*jmethodID vibrate = env->GetStaticMethodID(cls, "Vibrate", "(Landroid/app/Activity;)V");
-	env->CallStaticVoidMethod(cls, vibrate, dmGraphics::GetNativeAndroidActivity());
-	return 1;*/
+	dmLogInfo("ANDROID DefMcPlatform_Init ...");
+	dmLogInfo("NativeActivity NULL?: %i", dmGraphics::GetNativeAndroidActivity() == 0x0);
 
 	return 0;
 }
+
+int DefMcPlatform_Start()
+{
+	dmLogInfo("ANDROID DefMcPlatform_Start ...");
+	dmLogInfo("NativeActivity NULL?: %i", dmGraphics::GetNativeAndroidActivity() == 0x0);
+
+	// prepare JNI
+	AttachScope attachscope;
+	JNIEnv* env = attachscope.m_Env;
+	jclass cls = GetClass(env, "com.defold.android.defmc.DefMcExtension");
+
+	// call method
+	dmLogInfo("GetStaticMethodID ...");
+	jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(Landroid/app/Activity;)V");
+	dmLogInfo("DONE!");
+	dmLogInfo("CallStaticVoidMethod ...");
+	env->CallStaticVoidMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
+	dmLogInfo("DONE!");
+
+	dmLogInfo("ANDROID DefMcPlatform_Start DONE");
+	return 0;
+}
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -4,7 +4,13 @@
 #if !defined(DM_PLATFORM_ANDROID) && !defined(DM_PLATFORM_IOS)
 int DefMcPlatform_Init()
 {
-	dmLogError("NULL DefMcPlatform_Init");
+	dmLogInfo("NULL DefMcPlatform_Init");
+	return 0;
+}
+
+int DefMcPlatform_Start()
+{
+	dmLogInfo("NULL DefMcPlatform_Start");
 	return 0;
 }
 #endif

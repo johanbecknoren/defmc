@@ -19,6 +19,18 @@ static int InitDefMc(lua_State* L)
 	return 0;
 }
 
+static int StartDefMc(lua_State* L)
+{
+	int top = lua_gettop(L);
+
+    int result = DefMcPlatform_Start();
+    if (result != 0)
+        luaL_error(L, "Failed to start DefMc");
+
+    assert(top == lua_gettop(L));
+    return 0;
+}
+
 static int SampleAmplitude(lua_State* L)
 {
     int top = lua_gettop(L);
@@ -35,6 +47,8 @@ static int SampleAmplitude(lua_State* L)
 static const luaL_reg Module_methods[] =
 {
     {"sample_amplitude", SampleAmplitude},
+    {"init", InitDefMc},
+    {"start", StartDefMc},
     {0, 0}
 };
 
@@ -51,14 +65,15 @@ static void LuaInit(lua_State* L)
 
 dmExtension::Result AppInitializeDefMc(dmExtension::AppParams* params)
 {
+    printf("AppInitializeDefMc");
     return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result InitializeDefMc(dmExtension::Params* params)
 {
-	InitDefMc(params->m_L);
     // Init Lua
 	LuaInit(params->m_L);
+    //InitDefMc(params->m_L);
     printf("Registered %s Extension\n", MODULE_NAME);
     return dmExtension::RESULT_OK;
 }

@@ -21,6 +21,7 @@ shared_state = 1
 
 [android]
 package = com.defold.android.defmc
+manifest = /AndroidManifest.xml
 
 [ios]
 bundle_identifier = defold.defmc

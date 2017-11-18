@@ -17,6 +17,8 @@ function update(self, dt)
 		update_count = update_count + 1
 	elseif once == 1 then
 		once = 0
+		--defmc.init()
+		defmc.start()
 		local amp = defmc.sample_amplitude()
 		label.set_text("#label", "Amplitude: " .. tostring(amp))
 	end
