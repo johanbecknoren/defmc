@@ -1,10 +1,5 @@
-local update_delays = 50
-local update_count = 0
-local once = 1
 function init(self)
-	pprint("INIT!")
-	local sys_info = sys.get_sys_info()
-	label.set_text("#label_platform", sys_info.system_name .. " " .. sys_info.system_version)
+	go.animate(".", "position.y", go.PLAYBACK_LOOP_PINGPONG, go.get_position().y+300, go.EASING_LINEAR, 4)
 end
 
 function final(self)
@@ -13,6 +8,8 @@ function final(self)
 end
 
 function update(self, dt)
+	-- Add update code here
+	-- Remove this function if not needed
 end
 
 function on_message(self, message_id, message, sender)

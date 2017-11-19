@@ -6,24 +6,34 @@
 
 #include "defmc_private.h"
 
-static int InitDefMc(lua_State* L)
-{
-	int top = lua_gettop(L);
+// static int InitDefMc(lua_State* L)
+// {
+// 	int top = lua_gettop(L);
 
-	int result = DefMcPlatform_Init();
+// 	int result = DefMcPlatform_Init();
 
-	if (result != 0)
-		luaL_error(L, "Failed to init DefMc");
+// 	if (result != 0)
+// 		luaL_error(L, "Failed to init DefMc");
 
-	assert(top == lua_gettop(L));
-	return 0;
-}
+// 	assert(top == lua_gettop(L));
+// 	return 0;
+// }
 
 static int StartDefMc(lua_State* L)
 {
-	int top = lua_gettop(L);
+    int top = lua_gettop(L);
 
-    int result = DefMcPlatform_Start();
+    uint32_t sample_rate = 8000;
+    uint32_t sample_delay = 75;
+    if (top >= 1 && luaL_checknumber(L, 1)) {
+        sample_rate = (uint32_t) lua_tonumber(L, 1);
+        dmLogInfo("sample_rate: %i", sample_rate);
+    }
+    if (top >= 2 && luaL_checknumber(L, 2)) {
+        sample_delay = (uint32_t) lua_tonumber(L, 2);
+        dmLogInfo("sample_delay: %u", sample_delay);
+    }
+    int result = DefMcPlatform_Start(sample_rate, sample_delay);
     if (result != 0)
         luaL_error(L, "Failed to start DefMc");
 
@@ -64,7 +74,6 @@ static int SampleAmplitude(lua_State* L)
 static const luaL_reg Module_methods[] =
 {
     {"sample_amplitude", SampleAmplitude},
-    {"init", InitDefMc},
     {"start", StartDefMc},
     {"stop", StopDefMc},
     {0, 0}
@@ -103,6 +112,7 @@ dmExtension::Result AppFinalizeDefMc(dmExtension::AppParams* params)
 
 dmExtension::Result FinalizeDefMc(dmExtension::Params* params)
 {
+    //DefMcPlatform_Stop(params->m_L);
     return dmExtension::RESULT_OK;
 }
 

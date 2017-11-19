@@ -1,11 +1,15 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local max_amp = 300
 local running = 0
+local sample_rate = 10000
+local sample_delay = 66
+local top_amp = 0
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	self.meter_node = gui.get_node("meter")
 	self.amp_node = gui.get_node("amplitude")
+	self.top_amp_node = gui.get_node("top_amplitude")
 	self.height = gui.get_size(self.meter_node).y
 end
 
@@ -14,25 +18,37 @@ end
 
 function on_input(self, action_id, action)
 	dirtylarry:button("button_start", action_id, action, function ()
-		defmc.start()
+		defmc.start(sample_rate, sample_delay)
 		running = 1
 	end)
 	
 	dirtylarry:button("button_stop", action_id, action, function ()
 		running = 0
 		defmc.stop()
+		top_amp = 0
+		local pos = gui.get_position(self.amp_node)
+		pos.y = 0
+		gui.set_position(self.amp_node, pos)
+		gui.set_position(self.top_amp_node, pos)
 	end)
 end
 
 function update(self, dt)
+	--pprint(profiler.get_cpu_usage())
 	if running == 1 then
-		local amp = defmc.sample_amplitude()
-		pprint(amp)
+		local amp = math.min(defmc.sample_amplitude(), max_amp)
 		local n = amp / max_amp
-		pprint(n)
+		
 		local pos = gui.get_position(self.amp_node)
 		pos.y = self.height * n
 		gui.set_position(self.amp_node, pos)
+		
+		if amp > top_amp then
+			top_amp = math.min(amp, max_amp)
+			pos = gui.get_position(self.top_amp_node)
+			pos.y = self.height * n
+			gui.set_position(self.top_amp_node, pos)
+		end
 	end
 end
 

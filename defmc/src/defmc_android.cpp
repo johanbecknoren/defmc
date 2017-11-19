@@ -56,9 +56,9 @@ int DefMcPlatform_Init()
 	return 0;
 }
 
-int DefMcPlatform_Start()
+int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay)
 {
-	dmLogInfo("ANDROID DefMcPlatform_Start ...");
+	dmLogInfo("ANDROID DefMcPlatform_Start ... rate: %u, delay: %u", sample_rate, sample_delay);
 
 	// prepare JNI
 	AttachScope attachscope;
@@ -67,10 +67,12 @@ int DefMcPlatform_Start()
 
 	// call method
 	dmLogInfo("GetStaticMethodID ...");
-	jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(Landroid/app/Activity;)V");
+	//jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(Landroid/app/Activity;)V");
+	jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(II)V");
 	dmLogInfo("DONE!");
 	dmLogInfo("CallStaticVoidMethod ...");
-	env->CallStaticVoidMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
+	//env->CallStaticVoidMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
+	env->CallStaticVoidMethod(cls, start, (int)sample_rate, (int)sample_delay);
 	dmLogInfo("DONE!");
 
 	dmLogInfo("ANDROID DefMcPlatform_Start DONE");
@@ -100,7 +102,7 @@ int DefMcPlatform_Stop()
 
 int DefMcPlatform_SampleAmplitude(float &amp)
 {
-	dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude ...");
+	// dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude ...");
 
 	// prepare JNI
 	AttachScope attachscope;
@@ -110,9 +112,8 @@ int DefMcPlatform_SampleAmplitude(float &amp)
 	// call method
 	jmethodID start = env->GetStaticMethodID(cls, "SampleAmplitude", "(Landroid/app/Activity;)D");
 	amp = (float)env->CallStaticDoubleMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
-	dmLogInfo("DONE! amp = %f", amp);
 
-	dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude DONE");
+	// dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude DONE");
 	return 0;
 }
 #endif

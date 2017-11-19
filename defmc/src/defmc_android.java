@@ -11,13 +11,14 @@ import java.lang.Runnable;
 class DefMcExtension {
 	private final static String TAG = "defmc";
 
-	private static final int sampleRate = 8000;
+	private static int sampleRate = 8000;
 	private static double lastLevel = 0;
-	private static final int SAMPLE_DELAY = 75;
+	private static int sampleDelay = 75;
 	private static AudioRecord audio;
 	private static Thread thread;
 	private static int bufferSize;
 	private static short buffer[];
+	private static Boolean stopping = false;
 
 	public static void InitRecorder() {
 		// android.util.Log.v(TAG, "################### InitRecorder");
@@ -32,12 +33,17 @@ class DefMcExtension {
 		// }
 	}
 
-	public static void StartRecorder(final Activity activity) {
-		android.util.Log.v(TAG, "################### StartRecorder");
+	//public static void StartRecorder(final Activity activity) {
+	public static void StartRecorder(int sample_rate, int sample_delay) {
+		android.util.Log.v(TAG, "################### StartRecorder, sample_rate: "+sample_rate+", sample_delay: "+sample_delay);
 
 		if (thread != null) {
 			return;
 		}
+
+		sampleRate = sample_rate;
+		sampleDelay = sample_delay;
+		stopping = false;
 
 		try {
 			bufferSize = AudioRecord.getMinBufferSize(
@@ -56,21 +62,27 @@ class DefMcExtension {
 				AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 		android.util.Log.v(TAG, "DONE, starting recording...");
 
-		audio.startRecording();
-		android.util.Log.v(TAG, "DONE");
-
 		thread = new Thread(new Runnable() {
 			public void run() {
+				audio.startRecording();
+				android.util.Log.v(TAG, "DONE");
 				while(thread != null && !thread.isInterrupted()) {
-					try {
-						Thread.sleep(SAMPLE_DELAY);
-					} catch(InterruptedException ie) {
-						ie.printStackTrace();
+					if (stopping) {
+						try {
+							if (audio != null) {
+								audio.stop();
+								audio.release();
+								audio = null;
+							}
+						} catch (Exception e) {e.printStackTrace();}
+						thread.interrupt();
+						thread = null;
 						break;
 					}
+
+					try {Thread.sleep(sampleDelay);} catch(InterruptedException ie) {ie.printStackTrace();break;}
 					try {
 						int bufferReadResult = 1;
-
 						if (audio != null) {
 							bufferReadResult = audio.read(buffer, 0, bufferSize);
 							double sumLevel = 0;
@@ -78,7 +90,7 @@ class DefMcExtension {
 								sumLevel += buffer[i];
 							}
 							lastLevel = Math.abs((sumLevel / bufferReadResult));
-							android.util.Log.v(TAG, "lastLevel: " + lastLevel);
+							//android.util.Log.v(TAG, "lastLevel: " + lastLevel);
 						}
 
 					} catch (Exception e) {
@@ -92,15 +104,7 @@ class DefMcExtension {
 
 	public static void StopRecorder(final Activity activity) {
 		android.util.Log.v(TAG, "################################## STOPPA DÅÅÅÅÅÅÅÅÅÅÅÅÅÅÅ");
-		thread.interrupt();
-		thread = null;
-		try {
-			if (audio != null) {
-				audio.stop();
-				audio.release();
-				audio = null;
-			}
-		} catch (Exception e) {e.printStackTrace();}
+		stopping = true;
 	}
 
 	public static double SampleAmplitude(final Activity activity) {
