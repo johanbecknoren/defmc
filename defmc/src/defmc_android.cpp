@@ -1,4 +1,4 @@
-#include <dmsdk/sdk.h>
+§#include <dmsdk/sdk.h>
 #include "defmc_private.h"
 
 #if defined(DM_PLATFORM_ANDROID)
@@ -56,6 +56,9 @@ int DefMcPlatform_Init()
 	return 0;
 }
 
+uint16_t* g_Buf = 0x0;
+uint32_t g_Buflen = 0;
+
 int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay)
 {
 	dmLogInfo("ANDROID DefMcPlatform_Start ... rate: %u, delay: %u", sample_rate, sample_delay);
@@ -65,15 +68,16 @@ int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay)
 	JNIEnv* env = attachscope.m_Env;
 	jclass cls = GetClass(env, "com.defold.android.defmc.DefMcExtension");
 
-	// call method
-	dmLogInfo("GetStaticMethodID ...");
-	//jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(Landroid/app/Activity;)V");
+	// get buffersize
+	jmethodID get_buf_size = env->GetStaticMethodID(cls, "GetMinBufferSize", "(I)I");
+	uint32_t buf_len = (uint32_t)env->CallStaticIntMethod(cls, get_buf_size, (int)sample_rate);
+	dmLogInfo("buf_len: %u", buf_len);
+	g_Buf = (uint16_t*)malloc(buf_len * sizeof(uint16_t));
+	g_Buflen = buf_len;
+
+	// start recording
 	jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(II)V");
-	dmLogInfo("DONE!");
-	dmLogInfo("CallStaticVoidMethod ...");
-	//env->CallStaticVoidMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
 	env->CallStaticVoidMethod(cls, start, (int)sample_rate, (int)sample_delay);
-	dmLogInfo("DONE!");
 
 	dmLogInfo("ANDROID DefMcPlatform_Start DONE");
 	return 0;
@@ -96,26 +100,48 @@ int DefMcPlatform_Stop()
 	env->CallStaticVoidMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
 	dmLogInfo("DONE!");
 
+	if (g_Buf != 0x0)
+	{
+		free((void*)g_Buf);
+		g_Buf = 0x0;
+		g_Buflen = 0;
+	}
+
 	dmLogInfo("ANDROID DefMcPlatform_Stop DONE");
 	return 0;
 }
 
 int DefMcPlatform_SampleAmplitude(float &amp)
 {
-	// dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude ...");
+	// dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude ..., g_Buflen: %u", g_Buflen);
+
+	if (g_Buf == 0x0)
+		return 666;
 
 	// prepare JNI
 	AttachScope attachscope;
 	JNIEnv* env = attachscope.m_Env;
 	jclass cls = GetClass(env, "com.defold.android.defmc.DefMcExtension");
 
-	// call method
+	// get average amplitude
 	jmethodID start = env->GetStaticMethodID(cls, "SampleAmplitude", "(Landroid/app/Activity;)D");
 	amp = (float)env->CallStaticDoubleMethod(cls, start, dmGraphics::GetNativeAndroidActivity());
+
+	// dmLogInfo("GetStaticMethodID ...");
+	// jmethodID get_audio_buf = env->GetStaticMethodID(cls, "GetAudioBuffer", "([S)V");
+	// dmLogInfo("DONE! CallStaticVoidMethod ...");
+	// env->CallStaticVoidMethod(cls, get_audio_buf, g_Buf, g_Buflen);
+	// dmLogInfo("DONE!");
+
+	// for (int i = 0; i < g_Buflen; ++i)
+	// {
+	// 	dmLogInfo("%u", (uint32_t)g_Buf[i]);
+	// }
 
 	// dmLogInfo("ANDROID DefMcPlatform_SampleAmplitude DONE");
 	return 0;
 }
+
 #endif
 
 

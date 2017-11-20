@@ -12,25 +12,27 @@ class DefMcExtension {
 	private final static String TAG = "defmc";
 
 	private static int sampleRate = 8000;
-	private static double lastLevel = 0;
+	private static double lastLevel = 11;
 	private static int sampleDelay = 75;
 	private static AudioRecord audio;
 	private static Thread thread;
-	private static int bufferSize;
+	private static int bufferSize = 0;
 	private static short buffer[];
 	private static Boolean stopping = false;
 
-	public static void InitRecorder() {
-		// android.util.Log.v(TAG, "################### InitRecorder");
-		// try {
-		// 	bufferSize = AudioRecord.getMinBufferSize(
-		// 		sampleRate, 
-		// 		AudioFormat.CHANNEL_IN_MONO,
-		// 		AudioFormat.ENCODING_PCM_16BIT);
-		// 	buffer = new short[bufferSize];
-		// } catch (Exception e) {
-		// 	android.util.Log.e(TAG, "Exception", e);
-		// }
+	public static void InitRecorder() { }
+
+	public static int GetMinBufferSize(int sample_rate) {
+		try {
+			bufferSize = AudioRecord.getMinBufferSize(
+				sample_rate, 
+				AudioFormat.CHANNEL_IN_MONO,
+				AudioFormat.ENCODING_PCM_16BIT);
+		} catch (Exception e) {
+			android.util.Log.e(TAG, "Exception", e);
+		}
+
+		return bufferSize;
 	}
 
 	//public static void StartRecorder(final Activity activity) {
@@ -45,16 +47,18 @@ class DefMcExtension {
 		sampleDelay = sample_delay;
 		stopping = false;
 
-		try {
-			bufferSize = AudioRecord.getMinBufferSize(
-				sampleRate, 
-				AudioFormat.CHANNEL_IN_MONO,
-				AudioFormat.ENCODING_PCM_16BIT);
-			buffer = new short[bufferSize];
-			android.util.Log.v(TAG, "bufferSize: " + bufferSize);
-		} catch (Exception e) {
-			android.util.Log.e(TAG, "Exception", e);
-		}
+		// try {
+		// 	bufferSize = AudioRecord.getMinBufferSize(
+		// 		sampleRate, 
+		// 		AudioFormat.CHANNEL_IN_MONO,
+		// 		AudioFormat.ENCODING_PCM_16BIT);
+		// 	buffer = new short[bufferSize];
+		// 	android.util.Log.v(TAG, "bufferSize: " + bufferSize);
+		// } catch (Exception e) {
+		// 	android.util.Log.e(TAG, "Exception", e);
+		// }
+
+		buffer = new short[bufferSize];
 
 		android.util.Log.v(TAG, "Allocating new AudioRecord...");
 		audio = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
@@ -85,6 +89,7 @@ class DefMcExtension {
 						int bufferReadResult = 1;
 						if (audio != null) {
 							bufferReadResult = audio.read(buffer, 0, bufferSize);
+							//android.util.Log.v(TAG, "bufferReadResult: " + bufferReadResult);
 							double sumLevel = 0;
 							for (int i = 0; i < bufferReadResult; i++) {
 								sumLevel += buffer[i];
@@ -100,6 +105,10 @@ class DefMcExtension {
 			}
 		});
 		thread.start();
+	}
+
+	public static void GetAudioBuffer(short[] nativeBuf) {
+		android.util.Log.v(TAG, "##################### GetAudioBuffer");
 	}
 
 	public static void StopRecorder(final Activity activity) {
