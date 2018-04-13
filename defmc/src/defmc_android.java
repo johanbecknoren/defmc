@@ -18,7 +18,9 @@ class DefMcExtension {
 	private static Thread thread;
 	private static int bufferSize = 0;
 	private static short buffer[];
+	private static short buffer_filtered[];
 	private static Boolean stopping = false;
+	private static float alpha = 0.5f;
 
 	public static void InitRecorder() { }
 
@@ -36,7 +38,7 @@ class DefMcExtension {
 	}
 
 	//public static void StartRecorder(final Activity activity) {
-	public static void StartRecorder(int sample_rate, int sample_delay) {
+	public static void StartRecorder(int sample_rate, int sample_delay, float lp_alpha) {
 		android.util.Log.v(TAG, "################### StartRecorder, sample_rate: "+sample_rate+", sample_delay: "+sample_delay);
 
 		if (thread != null) {
@@ -45,10 +47,11 @@ class DefMcExtension {
 
 		sampleRate = sample_rate;
 		sampleDelay = sample_delay;
+		alpha = lp_alpha;
 		stopping = false;
 
 		// try {
-		// 	bufferSize = AudioRecord.getMinBufferSize(
+		// 	bufferSize = AudioRecord.getMinbufferSize(
 		// 		sampleRate, 
 		// 		AudioFormat.CHANNEL_IN_MONO,
 		// 		AudioFormat.ENCODING_PCM_16BIT);
@@ -59,6 +62,11 @@ class DefMcExtension {
 		// }
 
 		buffer = new short[bufferSize];
+		buffer_filtered = new short[bufferSize];
+		for(int i=0; i < bufferSize; ++i) {
+			buffer[i] = 0;
+			buffer_filtered[i] = 0;
+		}
 
 		android.util.Log.v(TAG, "Allocating new AudioRecord...");
 		audio = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
@@ -86,15 +94,21 @@ class DefMcExtension {
 
 					try {Thread.sleep(sampleDelay);} catch(InterruptedException ie) {ie.printStackTrace();break;}
 					try {
-						int bufferReadResult = 1;
+						int buffer_read_result = 1;
 						if (audio != null) {
-							bufferReadResult = audio.read(buffer, 0, bufferSize);
-							//android.util.Log.v(TAG, "bufferReadResult: " + bufferReadResult);
-							double sumLevel = 0;
-							for (int i = 0; i < bufferReadResult; i++) {
-								sumLevel += buffer[i];
+							buffer_read_result = audio.read(buffer, 0, bufferSize);
+							//android.util.Log.v(TAG, "buffer_read_result: " + buffer_read_result);
+							double sum_level = 0;
+							for (int i = 1; i < buffer_read_result; i++) {
+								// buffer_filtered[i] = buffer_filtered[i];
+								buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i]));
+								// buffer_filtered[i] = buffer_filtered[i-1];
+								// buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i-1]));
+								sum_level += buffer_filtered[i];
+
+								// sum_level += buffer[i];
 							}
-							lastLevel = Math.abs((sumLevel / bufferReadResult));
+							lastLevel = Math.abs((sum_level / buffer_read_result));
 							//android.util.Log.v(TAG, "lastLevel: " + lastLevel);
 						}
 

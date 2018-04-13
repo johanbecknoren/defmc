@@ -1,0 +1,6 @@
+images {
+  image: "/main/font-mog/512px-Checkerboard_pattern.svg.png"
+}
+margin: 0
+extrude_borders: 0
+inner_padding: 0

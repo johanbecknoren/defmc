@@ -8,7 +8,7 @@ int DefMcPlatform_Init()
 	return 0;
 }
 
-int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay)
+int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay, float lowpass_alpha)
 {
 	dmLogInfo("NULL DefMcPlatform_Start");
 	return 0;

@@ -1,4 +1,4 @@
-script: "/main/main.gui_script"
+script: "/graph/graph.gui_script"
 background_color {
   x: 0.0
   y: 0.0
@@ -326,7 +326,7 @@ nodes {
 nodes {
   position {
     x: 319.0
-    y: 188.0
+    y: 160.0
     z: 0.0
     w: 1.0
   }
@@ -338,7 +338,7 @@ nodes {
   }
   scale {
     x: 1.0
-    y: 1.0
+    y: 0.495
     z: 1.0
     w: 1.0
   }

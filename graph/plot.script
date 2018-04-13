@@ -1,0 +1,222 @@
+local UTILS = require "modules.utils"
+local RINGBUF = require "modules.buffer"
+
+local plot_w = 0
+local plot_h = 0
+local tex_data = nil
+
+local tex_path = nil
+local tex_size = nil
+
+local entry_size = 4
+
+-- in px, only valid integers
+-- GLOBAL
+ofs_r = 10
+ofs_l = 10
+ofs_u = 20
+ofs_d = 10
+
+local plot_sample_spacing = 0
+local plot_sample_spacing_norm = 0
+local area_w = 0
+local area_h = 0
+
+local plot_sample_spacing = 0
+local plot_sample_spacing_norm = 0
+local area_w = 0
+local area_h = 0
+
+local spline_steps = 1
+local max_plot_samples = 25
+local sample_stride = 1
+
+function twoDToLinear(x, y, w_px, entry_size)
+	return ((y-1) * w_px + (x-1)) * entry_size + 1
+end
+
+local function set_px_abs(stream, x, y, color)
+	local index = UTILS.twoDToLinear(x, y, plot_w, entry_size)
+	stream[index+0] = color.x
+	stream[index+1] = color.y
+	stream[index+2] = color.z
+	stream[index+3] = color.w
+end
+
+local function init_texture_buffer(self)
+	tex_path = go.get("#sprite", "texture0")
+	tex_size = go.get("#sprite", "size")
+	pprint(tex_path)
+	pprint(tex_size)
+	plot_w = tex_size.x
+	plot_h = tex_size.y
+
+	area_w = plot_w - ofs_r - ofs_l
+	area_h = plot_h - ofs_u - ofs_d
+	spline_steps = area_w * 4
+
+	plot_sample_spacing = (plot_w - ofs_r - ofs_r) / max_plot_samples
+	plot_sample_spacing_norm = 1 / max_plot_samples
+
+	self.buf = buffer.create(plot_w * plot_h, {{name = "plot_template", type = buffer.VALUE_TYPE_UINT8, count = entry_size}})
+	self.stream = buffer.get_stream(self.buf, hash("plot_template"))
+
+	self.buf_scratch = buffer.create(plot_w * plot_h, {{name = "plot_scratch", type = buffer.VALUE_TYPE_UINT8, count = entry_size}})
+	self.stream_scratch = buffer.get_stream(self.buf_scratch, hash("plot_scratch"))
+
+	-- set bg color
+	local slask = 1
+	while slask < #self.stream do
+		local col = 255
+		self.stream[slask+0] = col
+		self.stream[slask+1] = col
+		self.stream[slask+2] = col
+		self.stream[slask+3] = 255
+		slask = slask + entry_size
+	end
+
+	-- draw max line
+	local line_y = math.floor(plot_h - ofs_u)
+	for line_x = ofs_l,(plot_w - ofs_r) do
+		if (line_x*2)%20 < 8 then
+			local col = 128
+			set_px_abs(self.stream, line_x, line_y, vmath.vector4(col,col,col,255))
+		end
+	end
+
+	-- draw bottom line
+	line_y = math.floor(ofs_d)
+	for line_x = ofs_l,(plot_w - ofs_r) do
+		local col = 0
+		set_px_abs(self.stream, line_x, line_y, vmath.vector4(col,col,col,255))
+	end
+
+	-- draw time lines
+	-- left
+	local line_x = math.floor(ofs_l)
+	for line_y = ofs_d,(plot_h - ofs_u + 10) do
+		local col = 0
+		set_px_abs(self.stream, line_x, line_y, vmath.vector4(col,col,col,255))
+	end
+	--right
+	line_x = math.floor(plot_w - ofs_r)
+	for line_y = ofs_d,(plot_h - ofs_u + 10) do
+		local col = 0
+		set_px_abs(self.stream, line_x, line_y, vmath.vector4(col,col,col,255))
+	end
+	-- mid-plot lines
+	--[[for i=1,6 do
+		line_x = math.floor(ofs_l + 2*i*area_w / 12)
+		for line_y = ofs_d,(plot_h - ofs_u + 10) do
+			if (line_y*2)%20 < 8 then
+				local col = 0
+				set_px_abs(self.stream, line_x, line_y, vmath.vector4(col,col,col,255))
+			end
+		end
+	end--]]
+
+	local format = resource.TEXTURE_FORMAT_RGB
+	if entry_size == 4 then
+		format = resource.TEXTURE_FORMAT_RGBA
+	end
+	resource.set_texture(tex_path, 
+	{
+		type = resource.TEXTURE_TYPE_2D, 
+		width = plot_w,
+		height = plot_h,
+		format = format,
+		num_mip_maps=1
+	}, self.buf)
+end
+
+local function generatePlotData(self)
+	local upper_lim = self.max_amp
+
+	--gui.set_text(self.upper_lim_text_node, upper_lim)
+	--gui.set_text(self.middle_lim_text_node, middle_lim)
+
+	-- copy template to scratch
+	buffer.copy_stream(self.stream_scratch, 0, self.stream, 0, #self.stream)
+
+	local max_points = self.ringbuf:getItems()
+
+	local sample_amp = {}
+	--draw max and avg points
+	for i=1,(max_plot_samples / sample_stride) do
+		local x_norm = (i) * plot_sample_spacing_norm
+		local y_norm = max_points[i] / upper_lim
+
+		local x_abs, y_abs = UTILS.normalizedTo2D(x_norm, y_norm, plot_w, plot_h)
+		sample_amp[i] = {}
+		sample_amp[i].x = x_abs
+		sample_amp[i].y = y_abs
+		--i = i * sample_stride
+	end
+
+	local spline = UTILS.smooth(sample_amp, spline_steps)
+	for i=1,#spline do
+		local x = math.floor(spline[i].x + 0.5)
+		local y = math.floor(spline[i].y + 0.5)
+		set_px_abs(self.stream_scratch, x, y, vmath.vector4(255,0,0,255))
+	end
+	
+
+	local format = resource.TEXTURE_FORMAT_RGB
+	if entry_size == 4 then
+		format = resource.TEXTURE_FORMAT_RGBA
+	end
+
+	resource.set_texture(tex_path, 
+	{
+		type = resource.TEXTURE_TYPE_2D, 
+		width = plot_w,
+		height = plot_h,
+		format = format,
+		num_mip_maps=0
+	}, self.buf_scratch)
+end
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	go.set_scale(2)
+
+	self.ringbuf = RINGBUF(max_plot_samples)
+	self.max_amp = 100
+	
+	init_texture_buffer(self)
+	generatePlotData(self)
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Remove this function if not needed
+end
+
+local running = 0
+function update(self, dt)
+	if running == 1 then
+		local amp = math.min(defmc.sample_amplitude(), self.max_amp)
+		local n = amp-- / self.max_amp
+
+		--pprint(n)
+
+		self.ringbuf:insert(n)
+		generatePlotData(self)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("running") then
+		running = message.is_running
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Remove this function if not needed
+end

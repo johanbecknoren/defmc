@@ -25,6 +25,7 @@ static int StartDefMc(lua_State* L)
 
     uint32_t sample_rate = 8000;
     uint32_t sample_delay = 75;
+    float lowpass_alpha = 0.25f;
     if (top >= 1 && luaL_checknumber(L, 1)) {
         sample_rate = (uint32_t) lua_tonumber(L, 1);
         dmLogInfo("sample_rate: %i", sample_rate);
@@ -33,7 +34,11 @@ static int StartDefMc(lua_State* L)
         sample_delay = (uint32_t) lua_tonumber(L, 2);
         dmLogInfo("sample_delay: %u", sample_delay);
     }
-    int result = DefMcPlatform_Start(sample_rate, sample_delay);
+    if (top >= 3 && luaL_checknumber(L, 3)) {
+        lowpass_alpha = (float) lua_tonumber(L, 3);
+        dmLogInfo("lowpass_alpha: %f", lowpass_alpha);
+    }
+    int result = DefMcPlatform_Start(sample_rate, sample_delay, lowpass_alpha);
     if (result != 0)
         luaL_error(L, "Failed to start DefMc");
 

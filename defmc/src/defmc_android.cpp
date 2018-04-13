@@ -1,4 +1,4 @@
-§#include <dmsdk/sdk.h>
+#include <dmsdk/sdk.h>
 #include "defmc_private.h"
 
 #if defined(DM_PLATFORM_ANDROID)
@@ -59,7 +59,7 @@ int DefMcPlatform_Init()
 uint16_t* g_Buf = 0x0;
 uint32_t g_Buflen = 0;
 
-int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay)
+int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay, float lowpass_alpha)
 {
 	dmLogInfo("ANDROID DefMcPlatform_Start ... rate: %u, delay: %u", sample_rate, sample_delay);
 
@@ -76,8 +76,8 @@ int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay)
 	g_Buflen = buf_len;
 
 	// start recording
-	jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(II)V");
-	env->CallStaticVoidMethod(cls, start, (int)sample_rate, (int)sample_delay);
+	jmethodID start = env->GetStaticMethodID(cls, "StartRecorder", "(IIF)V");
+	env->CallStaticVoidMethod(cls, start, (int)sample_rate, (int)sample_delay, lowpass_alpha);
 
 	dmLogInfo("ANDROID DefMcPlatform_Start DONE");
 	return 0;
@@ -104,8 +104,8 @@ int DefMcPlatform_Stop()
 	{
 		free((void*)g_Buf);
 		g_Buf = 0x0;
-		g_Buflen = 0;
 	}
+	g_Buflen = 0;
 
 	dmLogInfo("ANDROID DefMcPlatform_Stop DONE");
 	return 0;
