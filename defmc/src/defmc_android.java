@@ -50,17 +50,6 @@ class DefMcExtension {
 		alpha = lp_alpha;
 		stopping = false;
 
-		// try {
-		// 	bufferSize = AudioRecord.getMinbufferSize(
-		// 		sampleRate, 
-		// 		AudioFormat.CHANNEL_IN_MONO,
-		// 		AudioFormat.ENCODING_PCM_16BIT);
-		// 	buffer = new short[bufferSize];
-		// 	android.util.Log.v(TAG, "bufferSize: " + bufferSize);
-		// } catch (Exception e) {
-		// 	android.util.Log.e(TAG, "Exception", e);
-		// }
-
 		buffer = new short[bufferSize];
 		buffer_filtered = new short[bufferSize];
 		for(int i=0; i < bufferSize; ++i) {
@@ -100,7 +89,7 @@ class DefMcExtension {
 							//android.util.Log.v(TAG, "buffer_read_result: " + buffer_read_result);
 							double sum_level = 0;
 							for (int i = 1; i < buffer_read_result; i++) {
-								// buffer_filtered[i] = buffer_filtered[i];
+								buffer_filtered[i] *= (short) (1.0 - alpha); // TODO uncomment this, should be more correct
 								buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i]));
 								// buffer_filtered[i] = buffer_filtered[i-1];
 								// buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i-1]));
