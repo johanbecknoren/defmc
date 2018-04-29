@@ -4,20 +4,9 @@
 // include the Defold SDK
 #include <dmsdk/sdk.h>
 
+#if defined(DM_PLATFORM_OSX) || defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS)
+
 #include "defmc_private.h"
-
-// static int InitDefMc(lua_State* L)
-// {
-// 	int top = lua_gettop(L);
-
-// 	int result = DefMcPlatform_Init();
-
-// 	if (result != 0)
-// 		luaL_error(L, "Failed to init DefMc");
-
-// 	assert(top == lua_gettop(L));
-// 	return 0;
-// }
 
 static int StartDefMc(lua_State* L)
 {
@@ -28,15 +17,15 @@ static int StartDefMc(lua_State* L)
     float lowpass_alpha = 0.25f;
     if (top >= 1 && luaL_checknumber(L, 1)) {
         sample_rate = (uint32_t) lua_tonumber(L, 1);
-        dmLogInfo("sample_rate: %i", sample_rate);
+        //dmLogInfo("sample_rate: %i", sample_rate);
     }
     if (top >= 2 && luaL_checknumber(L, 2)) {
         sample_delay = (uint32_t) lua_tonumber(L, 2);
-        dmLogInfo("sample_delay: %u", sample_delay);
+        //dmLogInfo("sample_delay: %u", sample_delay);
     }
     if (top >= 3 && luaL_checknumber(L, 3)) {
         lowpass_alpha = (float) lua_tonumber(L, 3);
-        dmLogInfo("lowpass_alpha: %f", lowpass_alpha);
+        //dmLogInfo("lowpass_alpha: %f", lowpass_alpha);
     }
     int result = DefMcPlatform_Start(sample_rate, sample_delay, lowpass_alpha);
     if (result != 0)
@@ -97,14 +86,15 @@ static void LuaInit(lua_State* L)
 
 dmExtension::Result AppInitializeDefMc(dmExtension::AppParams* params)
 {
-    printf("AppInitializeDefMc");
+    printf("AppInitializeDefMc\n");
+    DefMcPlatform_Init();
     return dmExtension::RESULT_OK;
 }
 
 dmExtension::Result InitializeDefMc(dmExtension::Params* params)
 {
     // Init Lua
-	LuaInit(params->m_L);
+    LuaInit(params->m_L);
     //InitDefMc(params->m_L);
     printf("Registered %s Extension\n", MODULE_NAME);
     return dmExtension::RESULT_OK;
@@ -127,3 +117,5 @@ dmExtension::Result FinalizeDefMc(dmExtension::Params* params)
 // DM_DECLARE_EXTENSION(symbol, name, app_init, app_final, init, update, on_event, final)
 
 DM_DECLARE_EXTENSION(defmc, LIB_NAME, AppInitializeDefMc, AppFinalizeDefMc, InitializeDefMc, 0, 0, FinalizeDefMc)
+
+#endif

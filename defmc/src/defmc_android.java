@@ -37,7 +37,6 @@ class DefMcExtension {
 		return bufferSize;
 	}
 
-	//public static void StartRecorder(final Activity activity) {
 	public static void StartRecorder(int sample_rate, int sample_delay, float lp_alpha) {
 		android.util.Log.v(TAG, "################### StartRecorder, sample_rate: "+sample_rate+", sample_delay: "+sample_delay);
 
@@ -86,19 +85,13 @@ class DefMcExtension {
 						int buffer_read_result = 1;
 						if (audio != null) {
 							buffer_read_result = audio.read(buffer, 0, bufferSize);
-							//android.util.Log.v(TAG, "buffer_read_result: " + buffer_read_result);
 							double sum_level = 0;
 							for (int i = 1; i < buffer_read_result; i++) {
-								buffer_filtered[i] *= (short) (1.0 - alpha); // TODO uncomment this, should be more correct
+								buffer_filtered[i] *= (short) (1.0 - alpha);
 								buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i]));
-								// buffer_filtered[i] = buffer_filtered[i-1];
-								// buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i-1]));
 								sum_level += buffer_filtered[i];
-
-								// sum_level += buffer[i];
 							}
 							lastLevel = Math.abs((sum_level / buffer_read_result));
-							//android.util.Log.v(TAG, "lastLevel: " + lastLevel);
 						}
 
 					} catch (Exception e) {
@@ -115,7 +108,6 @@ class DefMcExtension {
 	}
 
 	public static void StopRecorder(final Activity activity) {
-		android.util.Log.v(TAG, "################################## STOPPA DÅÅÅÅÅÅÅÅÅÅÅÅÅÅÅ");
 		stopping = true;
 	}
 

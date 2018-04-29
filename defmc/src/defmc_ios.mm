@@ -1,0 +1,2 @@
+// Good start; https://stackoverflow.com/questions/1010343/how-do-i-record-audio-on-iphone-with-avaudiorecorder
+// Even goodier start; https://stackoverflow.com/questions/31230854/ios-detect-blow-into-mic-and-convert-the-results-swift
