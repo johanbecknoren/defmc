@@ -89,6 +89,7 @@ class DefMcExtension {
 							for (int i = 1; i < buffer_read_result; i++) {
 								buffer_filtered[i] *= (short) (1.0 - alpha);
 								buffer_filtered[i] += (short)(alpha * (float)(buffer[i] - buffer_filtered[i]));
+								//buffer_filtered[i] += (short)(alpha * (float)(buffer[i])); // this should be more correct than commented above
 								sum_level += buffer_filtered[i];
 							}
 							lastLevel = Math.abs((sum_level / buffer_read_result));

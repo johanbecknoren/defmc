@@ -198,6 +198,7 @@ function update(self, dt)
 		local amp = math.min(defmc.sample_amplitude(), self.max_amp)
 		local n = amp-- / self.max_amp
 
+		--pprint(amp)
 		--pprint(n)
 
 		self.ringbuf:insert(n)

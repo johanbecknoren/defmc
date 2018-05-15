@@ -1,9 +1,9 @@
 local dirtylarry = require "dirtylarry/dirtylarry"
 local max_amp = 300
 local running = 0
-local sample_rate = 10000
+local sample_rate = 44100
 local sample_delay = 10
-local lowpass_alpha = 0.1
+local lowpass_alpha = 0.7
 local top_amp = 0
 
 function init(self)
