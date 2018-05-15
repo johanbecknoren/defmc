@@ -26,6 +26,7 @@ manifest = /AndroidManifest.xml
 
 [ios]
 bundle_identifier = defold.defmc
+infoplist = /Info.plist
 
 [osx]
 bundle_identifier = defold.defmc

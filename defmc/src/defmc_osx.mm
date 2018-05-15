@@ -1,5 +1,4 @@
 #include <dmsdk/sdk.h>
-
 #include "defmc_private.h"
 
 #if defined(DM_PLATFORM_OSX)
@@ -7,21 +6,20 @@
 #import <AVFoundation/AVFoundation.h>
 #import <CoreAudio/CoreAudioTypes.h>
 
-@interface MicBlowViewController : NSViewController {
+@interface AmplitudeViewController : NSViewController {
 	AVAudioRecorder *recorder;
 	NSTimer *levelTimer;
-	double lowPassResults;
 }
 
 - (void)levelTimerCallback:(NSTimer *)timer;
+- (void)startRecord;
+- (void)stopRecord;
 
 @end
 
-@implementation MicBlowViewController
+@implementation AmplitudeViewController
 
-- (void)viewDidLoad {
-	dmLogInfo("viewdidloaduruuuu!");
-	NSLog(@"HURRRDURRRR");
+- (void)startRecord {
 	NSURL *url = [NSURL fileURLWithPath:@"/dev/null"];
 
 	NSDictionary *settings = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -44,17 +42,20 @@
 	NSLog([error description]);	
 }
 
+- (void) stopRecord {
+	if (levelTimer) {
+		[levelTimer invalidate];
+		levelTimer = nil;
+	}
+}
+
 float lowpass_result = 0.0f;
 float lp_alpha = 0.05f;
 
 - (void)levelTimerCallback:(NSTimer *)timer {
 	[recorder updateMeters];
-	//const double ALPHA = 0.05;
-	double peakPowerForChannel = pow(10, (0.05 * [recorder peakPowerForChannel:0]));
-	lowpass_result = lp_alpha * peakPowerForChannel + (1.0 - lp_alpha) * lowpass_result;	
-	dmLogInfo("lp result: %f", lowpass_result);
-	//if (lowPassResults < 0.95)
-		//NSLog(@"Mic blow detected");
+	double peakPowerForChannel = pow(10, (0.04 * [recorder peakPowerForChannel:0]));
+	lowpass_result = lp_alpha * peakPowerForChannel + (1.0 - lp_alpha) * lowpass_result;
 }
 
 - (void)dealloc {
@@ -65,7 +66,7 @@ float lp_alpha = 0.05f;
 
 @end
 
-MicBlowViewController* controller;
+AmplitudeViewController* controller;
 
 int DefMcPlatform_Init()
 {
@@ -77,11 +78,9 @@ int DefMcPlatform_Init()
 int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay, float lowpass_alpha)
 {
 	dmLogInfo("OSX DefMcPlatform_Start ... rate: %u, delay: %u, alpha: %f", sample_rate, sample_delay, lowpass_alpha);
-	/*controller = [MicBlowViewController alloc];
-	[controller viewDidLoad];*/
 	lp_alpha = lowpass_alpha;
-	controller = [[MicBlowViewController alloc] init];
-	[controller viewDidLoad];
+	controller = [[AmplitudeViewController alloc] init];
+	[controller startRecord];
 	dmLogInfo("OSX DefMcPlatform_Start DONE");
 	return 0;
 }
@@ -89,19 +88,19 @@ int DefMcPlatform_Start(uint32_t sample_rate, uint32_t sample_delay, float lowpa
 int DefMcPlatform_Stop()
 {
 	dmLogInfo("OSX DefMcPlatform_Stop ...");
-	[controller release];
+	if (controller) {
+		[controller stopRecord];
+		[controller release];
+		controller = nil;
+	}
 	dmLogInfo("OSX DefMcPlatform_Stop DONE");
 	return 0;
 }
 
 int DefMcPlatform_SampleAmplitude(float &amp)
 {
-	//amp = 25.0f;
 	amp = lowpass_result * 10.0f;
-	dmLogInfo("returning amp: %f", amp);
 	return 0;
 }
-
-// TODO add Final-method to API, need to de-alloc Recorder that was alloc'd in Init
 
 #endif
