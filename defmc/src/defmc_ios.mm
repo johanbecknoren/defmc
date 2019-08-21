@@ -66,7 +66,8 @@ void initState() {
 
 - (void)levelTimerCallback:(NSTimer *)timer {
 	[recorder updateMeters];
-	double peakPowerForChannel = pow(10, (0.1 * [recorder peakPowerForChannel:0]));
+	//dmLogInfo("Metering enabled?: %i", recorder.meteringEnabled);
+	double peakPowerForChannel = pow(10, (0.05 * [recorder peakPowerForChannel:0]));
 	lowpass_result = lp_alpha * peakPowerForChannel + (1.0 - lp_alpha) * lowpass_result;
 	NSLog(@"Average input: %f Peak input: %f Low pass results: %f", [recorder averagePowerForChannel:0], [recorder peakPowerForChannel:0], lowpass_result);
 }
@@ -117,7 +118,7 @@ int DefMcPlatform_SampleAmplitude(float &amp)
 {
 	//dmLogInfo("iOS DefMcPlatform_SampleAmplitude ...");
 	//dmLogInfo("mm lowpass_result: %f", lowpass_result);
-	amp = lowpass_result * 120.0f;
+	amp = lowpass_result * 100.0f;
 	//dmLogInfo("iOS DefMcPlatform_SampleAmplitude DONE");
 	return 0;
 }
